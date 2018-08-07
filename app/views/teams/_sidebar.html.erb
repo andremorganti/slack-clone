@@ -3,8 +3,8 @@
       <div>
          <span class="team_title"><%= @team.slug %></span>
          <% if can? :destroy, @team %>
-            <a class="right team_icon remove_team" href="#">
-             <i class="material-icons" id="<%= @team.id %>">settings</i>
+         <a class="right team_icon remove_team" href="#">
+         <i class="material-icons" id="<%= @team.id %>">settings</i>
          </a>
          <% end %>
       </div>
@@ -23,7 +23,7 @@
                      <% @team.channels.each do |channel| %>
                      <li class="channel_<%= channel.id %>">
                         <div>
-                           <a href="#" class="open_channel">
+                           <a href="#" class="open_channel" id="<%= channel.id %>">
                            <span id="<%= channel.id %>">#<%= channel.slug %></span>
                            </a>
                            <% if can? :destroy, channel %>
@@ -58,20 +58,20 @@
                            <input type="hidden" name="team_id" class="team_id" value="<%= @team.id %>">
                         </li>
                         <% @team.my_users.each do |user| %>
-                           <% if user != current_user %>
-                           <li class="user_<%= user.id %>">
-                              <div>
-                                 <a href="#" id="<%= user.id %>" class="open_user">
-                                 <span id="<%= user.id %>"><%= user.name %></span>
-                                 </a>
-                                 <% if can? :destroy, @team %>
-                                 <a class="right remove_user" id="<%= user.id %>" href="#" style="color: #ccc">
-                                 <i class="material-icons" id="<%= user.id %>">settings</i>
-                                 </a>
-                                 <% end %>
-                              </div>
-                           </li>
-                           <% end %>
+                        <% if user != current_user %>
+                        <li class="user_<%= user.id %>">
+                           <div>
+                              <a href="#" id="<%= user.id %>" class="open_user">
+                                <span id="<%= user.id %>"><%= user.name %></span>
+                              </a>
+                              <% if can? :destroy, @team %>
+                              <a class="right remove_user" id="<%= user.id %>" href="#" style="color: #ccc">
+                              <i class="material-icons" id="<%= user.id %>">settings</i>
+                              </a>
+                              <% end %>
+                           </div>
+                        </li>
+                        <% end %>
                         <% end %>
                         <% if can? :destroy, @team %>
                         <li>
