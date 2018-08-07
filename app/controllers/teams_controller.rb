@@ -1,47 +1,80 @@
-class TeamsController < ApplicationController
-  before_action :set_team, only: [:destroy]
-  before_action :set_by_slug_team, only: [:show]
+require 'rails_helper'
 
-  def index
-    @teams = current_user.teams
+RSpec.describe TeamUsersController, type: :controller do
+  include Devise::Test::ControllerHelpers
+
+  before(:each) do
+    request.env["HTTP_ACCEPT"] = 'application/json'
+
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @current_user = FactoryGirl.create(:user)
+    sign_in @current_user
   end
 
-  def show
-    authorize! :read, @team #parametro do cancancan
-  end
+  describe "GET #crete" do
+    # Sem isto os testes não renderizam o json
+    render_views
 
-  def create
-    @team = Team.new(team_params)
+    context "Team owner" do
+      before(:each) do
+        @team = create(:team, user: @current_user)
+        @guest_user = create(:user)
 
-    respond_to do |format|
-      if @team.save
-        format.html { redirect_to "/#{@team.slug}" }
-      else
-        format.html { redirect_to main_app.root_url, notice: @team.errors }
+        post :create, params: { team_user: { email: @guest_user.email, team_id: @team.id } }
+      end
+
+      it "returns http success" do
+        expect(response).to have_http_status(:success)
+      end
+
+      it "Return the right params" do
+        response_hash = JSON.parse(response.body)
+
+        expect(response_hash["user"]["name"]).to eql(@guest_user.name)
+        expect(response_hash["user"]["email"]).to eql(@guest_user.email)
+        expect(response_hash["team_id"]).to eql(@team.id)
+      end
+    end
+
+    context "Team not owner" do
+      before(:each) do
+        @team = create(:team)
+        @guest_user = create(:user)
+      end
+
+      it "returns http forbidden" do
+        post :create, params: { team_user: { email: @guest_user.email, team_id: @team.id } }
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
 
-  def destroy
-    authorize! :destroy, @team
-    @team.destroy
+  describe "GET #destroy" do
+    context "Team owner" do
+      before(:each) do
+        @team = create(:team, user: @current_user)
+        @guest_user = create(:user)
+        @team.users << @guest_user
+      end
 
-    respond_to do |format|
-      format.json { head :no_content }
+      it "returns http success" do
+        delete :destroy, params: { id: @guest_user.id, team_id: @team.id }
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "Team not owner" do
+      before(:each) do
+        @team = create(:team)
+        @guest_user = create(:user)
+        @team.users << @guest_user
+      end
+
+      it "returns http forbidden" do
+        delete :destroy, params: { id: @guest_user.id, team_id: @team.id }
+        expect(response).to have_http_status(:forbidden)
+      end
     end
   end
 
-  private
-
-  def set_by_slug_team
-    @team = Team.find_by(slug: params[:slug])
-  end
-
-  def set_team
-    @team = Team.find(params[:id])
-  end
-
-  def team_params
-    params.require(:team).permit(:slug).merge(user: current_user) #o merge é para preencher com o usuário que ja está logado
-  end
 end
