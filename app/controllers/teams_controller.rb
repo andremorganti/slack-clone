@@ -7,7 +7,7 @@ class TeamsController < ApplicationController
   end
 
   def show
-    authorize! :read, @team
+    authorize! :read, @team #parametro do cancancan
   end
 
   def create
@@ -42,6 +42,6 @@ class TeamsController < ApplicationController
   end
 
   def team_params
-    params.require(:team).permit(:slug).merge(user: current_user)
+    params.require(:team).permit(:slug).merge(user: current_user) #o merge é para preencher com o usuário que ja está logado
   end
 end

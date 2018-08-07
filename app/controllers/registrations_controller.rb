@@ -1,5 +1,5 @@
 class RegistrationsController < Devise::RegistrationsController
-
+	#esse controller é para reescrever o controller original do devise por conta do novo campo name
   private
 
   def sign_up_params
